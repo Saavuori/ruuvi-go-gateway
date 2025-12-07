@@ -1,9 +1,9 @@
-package data_sinks
+﻿package data_sinks
 
 import (
 	"encoding/json"
 
-	"github.com/Scrin/ruuvi-go-gateway/parser"
+	"github.com/Saavuori/ruuvi-go-gateway/parser"
 	log "github.com/sirupsen/logrus"
 )
 

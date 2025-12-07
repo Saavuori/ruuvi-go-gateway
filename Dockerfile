@@ -1,5 +1,5 @@
 # Stage 1: Build the frontend
-FROM node:18-alpine AS frontend-builder
+FROM node:22-alpine AS frontend-builder
 WORKDIR /app/web
 COPY web/package*.json ./
 RUN npm ci
@@ -11,7 +11,7 @@ RUN npm run build
 # Stage 2: Build the backend and embed frontend
 FROM golang:1.23-alpine AS backend-builder
 ARG VERSION="unknown-docker"
-WORKDIR /go/src/github.com/Scrin/ruuvi-go-gateway/
+WORKDIR /app
 
 # Copy Go module files first for better caching
 COPY go.mod go.sum ./
@@ -21,11 +21,16 @@ RUN go mod download
 COPY . .
 
 # Copy the built frontend assets from the previous stage to where Go expects them
-# verify web/assets.go expects "out/*"
 COPY --from=frontend-builder /app/web/out ./web/out
 
 # Build the binary
-RUN go build -ldflags "-X github.com/Scrin/ruuvi-go-gateway/common/version.Version=${VERSION}" -o /go/bin/ruuvi-go-gateway ./cmd/ruuvi-go-gateway
+ARG TARGETOS
+ARG TARGETARCH
+# Build the binary with proper cross-compilation support
+RUN MODULE=$(go list -m) && \
+    GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
+    -ldflags "-X ${MODULE}/common/version.Version=${VERSION}" \
+    -o /go/bin/ruuvi-go-gateway ./cmd/ruuvi-go-gateway
 
 # Stage 3: Final lightweight image
 FROM alpine:latest

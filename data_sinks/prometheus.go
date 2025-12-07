@@ -1,13 +1,13 @@
-package data_sinks
+﻿package data_sinks
 
 import (
 	"fmt"
 	"net/http"
 	"runtime"
 
-	"github.com/Scrin/ruuvi-go-gateway/common/version"
-	"github.com/Scrin/ruuvi-go-gateway/config"
-	"github.com/Scrin/ruuvi-go-gateway/parser"
+	"github.com/Saavuori/ruuvi-go-gateway/common/version"
+	"github.com/Saavuori/ruuvi-go-gateway/config"
+	"github.com/Saavuori/ruuvi-go-gateway/parser"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
@@ -79,7 +79,7 @@ func initMetrics(measurementMetricPrefix string) {
 
 	metrics.temperature = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: measurementMetricPrefix + "temperature",
-		Help: "Temperature in ºC",
+		Help: "Temperature in ÂºC",
 	}, tagLabels)
 	metrics.humidity = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: measurementMetricPrefix + "humidity",
@@ -132,7 +132,7 @@ func initMetrics(measurementMetricPrefix string) {
 	}, tagLabels)
 	metrics.dewPoint = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: measurementMetricPrefix + "dew_point",
-		Help: "Dew point in ºC",
+		Help: "Dew point in ÂºC",
 	}, tagLabels)
 	metrics.equilibriumVaporPressure = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: measurementMetricPrefix + "equilibrium_vapor_pressure",
@@ -158,19 +158,19 @@ func initMetrics(measurementMetricPrefix string) {
 	// New E1 metrics
 	metrics.pm1p0 = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: measurementMetricPrefix + "pm1p0",
-		Help: "PM1.0 mass concentration (µg/m³)",
+		Help: "PM1.0 mass concentration (Âµg/mÂ³)",
 	}, tagLabels)
 	metrics.pm2p5 = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: measurementMetricPrefix + "pm2p5",
-		Help: "PM2.5 mass concentration (µg/m³)",
+		Help: "PM2.5 mass concentration (Âµg/mÂ³)",
 	}, tagLabels)
 	metrics.pm4p0 = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: measurementMetricPrefix + "pm4p0",
-		Help: "PM4.0 mass concentration (µg/m³)",
+		Help: "PM4.0 mass concentration (Âµg/mÂ³)",
 	}, tagLabels)
 	metrics.pm10p0 = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: measurementMetricPrefix + "pm10p0",
-		Help: "PM10.0 mass concentration (µg/m³)",
+		Help: "PM10.0 mass concentration (Âµg/mÂ³)",
 	}, tagLabels)
 	metrics.co2 = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: measurementMetricPrefix + "co2",

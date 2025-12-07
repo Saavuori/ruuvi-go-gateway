@@ -1,4 +1,5 @@
 /config.yml
+/config.dev.yml
 /verification_config.yml
 *~
 *.exe

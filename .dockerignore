@@ -1,0 +1,27 @@
+# Version control
+.git
+.gitignore
+.github
+
+# Go build artifacts
+*.exe
+*.test
+*.prof
+bin/
+ruuvi-go-gateway
+ruuvi-go-gateway.exe
+
+# Node.js dependencies and build output
+web/node_modules
+web/.next
+web/out
+web/npm-debug.log*
+web/yarn-debug.log*
+web/yarn-error.log*
+
+# IDE settings
+.vscode
+.idea
+*.swp
+*.swo
+*~

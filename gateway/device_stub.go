@@ -1,4 +1,4 @@
-//go:build !linux
+﻿//go:build !linux
 // +build !linux
 
 package gateway
@@ -6,7 +6,7 @@ package gateway
 import (
 	"errors"
 
-	"github.com/Scrin/ruuvi-go-gateway/config"
+	"github.com/Saavuori/ruuvi-go-gateway/config"
 	"github.com/rigado/ble"
 )
 

@@ -1,4 +1,4 @@
-module github.com/Scrin/ruuvi-go-gateway
+module github.com/Saavuori/ruuvi-go-gateway
 
 go 1.23.10
 

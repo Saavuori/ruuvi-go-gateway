@@ -1,13 +1,23 @@
 version: "3.5"
 services:
   ruuvigateway:
-    image: ghcr.io/scrin/ruuvi-go-gateway
+    build: .
+    image: ruuvi-go-gateway:local
     container_name: ruuvi-go-gateway
     restart: unless-stopped
+    # 'network_mode: host' is required for BLE on Linux to access the HCI interface directly.
+    # This renders 'ports' directive ineffective (app listens on 8080 by default on host IP).
+    network_mode: host
+
+    # NET_ADMIN capability is often required for BLE scanning operations.
     cap_add:
       - NET_ADMIN
-    network_mode: host
-    devices:
-      - "/dev/bus/usb/002/001:/dev/bus/usb/002/001" # your correct bluetooth adapter
+
+    # Device mapping is typically NOT needed if using network_mode: host and the internal HCI.
+    # If using an external USB dongle and NOT using network_mode: host, you might map it,
+    # but 'github.com/rigado/ble' usually expects host networking for raw socket access.
+    # devices:
+    #   - "/dev/bus/usb/002/001:/dev/bus/usb/002/001" 
+
     volumes:
       - ./config.yml:/config.yml:ro

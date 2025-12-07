@@ -1,9 +1,9 @@
-package logging
+﻿package logging
 
 import (
 	"os"
 
-	"github.com/Scrin/ruuvi-go-gateway/config"
+	"github.com/Saavuori/ruuvi-go-gateway/config"
 	log "github.com/sirupsen/logrus"
 )
 

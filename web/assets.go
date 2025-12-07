@@ -2,5 +2,5 @@ package web
 
 import "embed"
 
-//go:embed out/*
+//go:embed all:out
 var Assets embed.FS

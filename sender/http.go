@@ -1,4 +1,4 @@
-package sender
+﻿package sender
 
 import (
 	"encoding/json"
@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Scrin/ruuvi-go-gateway/config"
+	"github.com/Saavuori/ruuvi-go-gateway/config"
 	"github.com/rigado/ble"
 	log "github.com/sirupsen/logrus"
 )

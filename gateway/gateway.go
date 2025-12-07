@@ -1,15 +1,15 @@
-package gateway
+﻿package gateway
 
 import (
 	"context"
 	"fmt"
 	"strings"
 
-	"github.com/Scrin/ruuvi-go-gateway/config"
-	"github.com/Scrin/ruuvi-go-gateway/data_sinks"
-	"github.com/Scrin/ruuvi-go-gateway/parser"
-	"github.com/Scrin/ruuvi-go-gateway/server"
-	"github.com/Scrin/ruuvi-go-gateway/value_calculator"
+	"github.com/Saavuori/ruuvi-go-gateway/config"
+	"github.com/Saavuori/ruuvi-go-gateway/data_sinks"
+	"github.com/Saavuori/ruuvi-go-gateway/parser"
+	"github.com/Saavuori/ruuvi-go-gateway/server"
+	"github.com/Saavuori/ruuvi-go-gateway/value_calculator"
 	"github.com/rigado/ble"
 	log "github.com/sirupsen/logrus"
 )
