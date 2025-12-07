@@ -54,4 +54,3 @@ func CalcExtendedValues(m *parser.Measurement) {
 		m.AirQualityIndex = f64(aqi)
 	}
 }
-}
