@@ -71,6 +71,7 @@ type Config struct {
 	InfluxDB3Publisher *InfluxDB3Publisher `yaml:"influxdb3_publisher,omitempty" json:"influxdb3_publisher,omitempty"`
 	Prometheus         *Prometheus         `yaml:"prometheus,omitempty" json:"prometheus,omitempty"`
 	MQTTPublisher      *MQTTPublisher      `yaml:"mqtt_publisher,omitempty" json:"mqtt_publisher,omitempty"`
+	Matter             *Matter             `yaml:"matter,omitempty" json:"matter,omitempty"`
 	TagNames           map[string]string   `yaml:"tag_names,omitempty" json:"tag_names,omitempty"`
 	EnabledTags        []string            `yaml:"enabled_tags,omitempty" json:"enabled_tags,omitempty"`
 	Logging            Logging             `yaml:"logging" json:"logging"`
@@ -154,6 +155,15 @@ type MQTTPublisher struct {
 	LWTTopic                     string   `yaml:"lwt_topic" json:"lwt_topic"`
 	LWTOnlinePayload             string   `yaml:"lwt_online_payload" json:"lwt_online_payload"`
 	LWTOfflinePayload            string   `yaml:"lwt_offline_payload" json:"lwt_offline_payload"`
+}
+
+type Matter struct {
+	Enabled       *bool  `yaml:"enabled,omitempty" json:"enabled,omitempty"`
+	Passcode      uint32 `yaml:"passcode" json:"passcode"`
+	Discriminator uint16 `yaml:"discriminator" json:"discriminator"`
+	VendorID      uint16 `yaml:"vendor_id" json:"vendor_id"`
+	ProductID     uint16 `yaml:"product_id" json:"product_id"`
+	StoragePath   string `yaml:"storage_path" json:"storage_path"`
 }
 
 func ReadConfig(configFile string, strict bool) (Config, error) {

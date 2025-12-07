@@ -12,6 +12,7 @@ import (
 
 	"github.com/Saavuori/ruuvi-go-gateway/config"
 	"github.com/Saavuori/ruuvi-go-gateway/parser"
+	"github.com/Saavuori/ruuvi-go-gateway/service/matter"
 	"github.com/Saavuori/ruuvi-go-gateway/web"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
@@ -90,7 +91,7 @@ func UpdateTag(m parser.Measurement) {
 	recentTags[m.Mac] = tags
 }
 
-func Start(conf config.Config, confFile string) {
+func Start(conf config.Config, confFile string, matterBridge *matter.Bridge) {
 	if confFile != "" {
 		configFile = confFile
 	}
@@ -103,6 +104,11 @@ func Start(conf config.Config, confFile string) {
 	mux.HandleFunc("/api/tags/enable", handleTagEnable)
 	mux.HandleFunc("/api/tags/name", handleTagName)
 	mux.HandleFunc("/api/restart", handleRestart)
+
+	// Matter API
+	mux.HandleFunc("/api/matter", func(w http.ResponseWriter, r *http.Request) {
+		handleMatter(w, r, matterBridge)
+	})
 
 	// Static Files (Web UI)
 	fsys, err := fs.Sub(web.Assets, "out")
@@ -331,5 +337,18 @@ func handleTagName(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success":   true,
 		"tag_names": c.TagNames,
+	})
+}
+
+func handleMatter(w http.ResponseWriter, r *http.Request, bridge *matter.Bridge) {
+	if bridge == nil {
+		http.Error(w, "Matter support not initialized", http.StatusServiceUnavailable)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"pairing_code": bridge.GetPairingCode(),
+		"qr_code":      bridge.GetQRCode(),
 	})
 }

@@ -8,7 +8,7 @@ all_advertisements: false
 hci_index: 0
 
 # Enable mock scanner (generates fake RuuviTag data) - useful for testing on non-Linux systems
-use_mock: false
+use_mock: true
 
 # HTTP Configuration (Management UI)
 http_listener:
@@ -69,3 +69,17 @@ prometheus:
   enabled: false
   port: 8081
   measurement_metric_prefix: ruuvi
+
+# Matter Bridge Settings
+matter:
+  enabled: false
+  # 12-digit setup passcode (must be compliant, e.g. 20202021)
+  passcode: 20202021
+  # 12-bit discriminator (0-4095)
+  discriminator: 3840
+  # Vendor ID (use Test VID 0xFFF1 for dev)
+  vendor_id: 65521 # 0xFFF1
+  # Product ID (use Test PID 0x8000 for dev)
+  product_id: 32768 # 0x8000
+  # Storage path for persistent matter fabric/keys
+  storage_path: "./matter_data"

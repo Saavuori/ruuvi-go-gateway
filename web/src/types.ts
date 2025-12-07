@@ -9,6 +9,7 @@ export interface Config {
     influxdb_publisher?: InfluxDBPublisherConfig;
     influxdb3_publisher?: InfluxDB3PublisherConfig;
     prometheus?: PrometheusConfig;
+    matter?: MatterConfig;
     enabled_tags?: string[];
     tag_names?: Record<string, string>;
 }
@@ -69,6 +70,15 @@ export interface PrometheusConfig {
     enabled: boolean;
     port: number;
     measurement_metric_prefix: string;
+}
+
+export interface MatterConfig {
+    enabled: boolean;
+    passcode: number;
+    discriminator: number;
+    vendor_id: number;
+    product_id: number;
+    storage_path: string;
 }
 
 export interface Tag {

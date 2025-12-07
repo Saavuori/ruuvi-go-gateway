@@ -1,13 +1,12 @@
 module github.com/Saavuori/ruuvi-go-gateway
 
-go 1.23.10
+go 1.25
 
 require (
 	github.com/InfluxCommunity/influxdb3-go/v2 v2.11.0
 	github.com/influxdata/influxdb-client-go/v2 v2.14.0
 	github.com/prometheus/client_golang v1.23.2
 	github.com/rigado/ble v0.6.17
-	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
@@ -54,7 +53,7 @@ require (
 	github.com/eclipse/paho.mqtt.golang v1.5.0
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/raff/goble v0.0.0-20190909174656-72afc67d6a99 // indirect
-	github.com/sirupsen/logrus v1.8.1
+	github.com/sirupsen/logrus v1.9.3
 	golang.org/x/sys v0.35.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1
 )

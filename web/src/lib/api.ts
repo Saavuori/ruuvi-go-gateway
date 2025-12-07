@@ -122,3 +122,10 @@ export async function setTagName(mac: string, name: string): Promise<{ success: 
     if (!res.ok) throw new Error('Failed to set tag name');
     return res.json();
 }
+
+export async function fetchMatterStatus(): Promise<{ pairing_code: string; qr_code: string }> {
+    if (IS_DEV) return { pairing_code: "20202021", qr_code: "MT:Y.K9042C00KA0648G00" };
+    const res = await fetch('/api/matter');
+    if (!res.ok) throw new Error('Failed to fetch matter status');
+    return res.json();
+}

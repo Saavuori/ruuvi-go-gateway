@@ -2,14 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import { fetchConfig, fetchTags, updateConfig, enableTag, restartGateway, setTagName } from '@/lib/api';
-import { Config, Tag, MQTTPublisherConfig, InfluxDBPublisherConfig, InfluxDB3PublisherConfig } from '@/types';
+import { Config, Tag, MQTTPublisherConfig, InfluxDBPublisherConfig, InfluxDB3PublisherConfig, MatterConfig } from '@/types';
 import { IntegrationCard } from '@/components/IntegrationCard';
 import { Modal } from '@/components/Modal';
 import { MQTTForm } from '@/components/MQTTForm';
 import { InfluxDBForm } from '@/components/InfluxDBForm';
 import { InfluxDB3Form } from '@/components/InfluxDB3Form';
+import { MatterForm } from '@/components/MatterForm';
 import { RuuviTagForm } from '@/components/RuuviTagForm';
-import { Bluetooth, Radio, Cloud, Database, BarChart3, Settings, Plus, Check, RefreshCw } from 'lucide-react';
+import { Bluetooth, Radio, Cloud, Database, BarChart3, Settings, Plus, Check, RefreshCw, QrCode } from 'lucide-react';
 
 export default function Home() {
   const [config, setConfig] = useState<Config | null>(null);
@@ -76,6 +77,8 @@ export default function Home() {
         newConfig.influxdb_publisher = formData as InfluxDBPublisherConfig;
       } else if (activeSinkId === 'influxdb3_publisher') {
         newConfig.influxdb3_publisher = formData as InfluxDB3PublisherConfig;
+      } else if (activeSinkId === 'matter') {
+        newConfig.matter = formData as MatterConfig;
       }
 
       await updateConfig(newConfig);
@@ -184,6 +187,15 @@ export default function Home() {
         measurement: 'ruuvi_measurements',
         minimum_interval: '1s'
       });
+    } else if (id === 'matter') {
+      setFormData(config.matter || {
+        enabled: false,
+        passcode: 20202021,
+        discriminator: 3840,
+        vendor_id: 65521,
+        product_id: 32768,
+        storage_path: "./matter_data"
+      });
     } else if (id === 'prometheus') {
       // Prometheus usually just has enabled/disabled in this simple config, 
       // but let's check the schema. It has port and prefix.
@@ -221,6 +233,13 @@ export default function Home() {
       desc: 'Expose metrics for scraping',
       icon: BarChart3,
       enabled: config?.prometheus?.enabled ?? false
+    },
+    {
+      id: 'matter',
+      title: 'Matter Bridge',
+      desc: 'Expose tags to Apple/Google Home',
+      icon: QrCode,
+      enabled: config?.matter?.enabled ?? false
     }
   ];
 
@@ -324,7 +343,8 @@ export default function Home() {
           activeSinkId === 'mqtt_publisher' ? 'Configure MQTT Publisher' :
             activeSinkId === 'influxdb_publisher' ? 'Configure InfluxDB Publisher' :
               activeSinkId === 'influxdb3_publisher' ? 'Configure InfluxDB v3 Publisher' :
-                'Configure Integration'
+                activeSinkId === 'matter' ? 'Matter Bridge Calibration' :
+                  'Configure Integration'
         }
         onSubmit={handleSave}
         isSaving={isSaving}
@@ -351,6 +371,12 @@ export default function Home() {
           <div className="p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
             To enable Prometheus scraping, set <code>enabled: true</code> in your configuration. The metrics will be available at <code>/metrics</code>.
           </div>
+        )}
+        {activeSinkId === 'matter' && (
+          <MatterForm
+            config={formData}
+            onChange={setFormData}
+          />
         )}
       </Modal>
 
