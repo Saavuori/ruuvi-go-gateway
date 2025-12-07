@@ -241,32 +241,34 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {tags.map((tag) => (
-              <IntegrationCard
-                key={tag.mac}
-                title={getTagName(tag.mac) || `RuuviTag ${tag.mac.slice(-5)}`}
-                subtitle={tag.mac}
-                description="" // Not used when sensors are provided
-                icon={Bluetooth}
-                status={isTagEnabled(tag.mac) ? 'active' : 'new'}
-                sensors={{
-                  temperature: tag.temperature,
-                  humidity: tag.humidity,
-                  pressure: tag.pressure,
-                  voltage: tag.battery_voltage,
-                  rssi: tag.rssi,
-                  pm2p5: tag.pm2p5,
-                  co2: tag.co2,
-                  voc: tag.voc,
-                  nox: tag.nox,
-                  illuminance: tag.illuminance,
-                  sound_average: tag.sound_average,
-                  movement_counter: tag.movement_counter
-                }}
-                onConfigure={() => openTagModal(tag)}
-                configureLabel="Configure"
-              />
-            ))}
+            {tags
+              .sort((a, b) => a.mac.localeCompare(b.mac))
+              .map((tag) => (
+                <IntegrationCard
+                  key={tag.mac}
+                  title={getTagName(tag.mac) || `RuuviTag ${tag.mac.slice(-5)}`}
+                  subtitle={tag.mac}
+                  description="" // Not used when sensors are provided
+                  icon={Bluetooth}
+                  status={isTagEnabled(tag.mac) ? 'active' : 'new'}
+                  sensors={{
+                    temperature: tag.temperature,
+                    humidity: tag.humidity,
+                    pressure: tag.pressure,
+                    voltage: tag.battery_voltage,
+                    rssi: tag.rssi,
+                    pm2p5: tag.pm2p5,
+                    co2: tag.co2,
+                    voc: tag.voc,
+                    nox: tag.nox,
+                    illuminance: tag.illuminance,
+                    sound_average: tag.sound_average,
+                    movement_counter: tag.movement_counter
+                  }}
+                  onConfigure={() => openTagModal(tag)}
+                  configureLabel="Configure"
+                />
+              ))}
             {tags.length === 0 && (
               <div className="col-span-full py-12 text-center text-gray-500 bg-white rounded-xl border border-dashed border-gray-300">
                 No tags discovered yet.
