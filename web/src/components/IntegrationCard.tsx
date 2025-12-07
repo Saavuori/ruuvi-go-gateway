@@ -25,6 +25,7 @@ interface IntegrationCardProps {
         air_quality_index?: number;
     };
     subtitle?: string;
+    lastSeen?: number;
 }
 
 export function IntegrationCard({
@@ -36,12 +37,32 @@ export function IntegrationCard({
     configureLabel,
     onEdit,
     sensors,
-    subtitle
+    subtitle,
+    lastSeen
 }: IntegrationCardProps) {
     const buttonLabel = configureLabel || (status === 'new' ? 'Add' : 'Configure');
 
     // Use calculated AQI if available, otherwise fallback or hide
     const aqi = sensors?.air_quality_index;
+
+    // Calculate time ago
+    const now = Date.now() / 1000;
+    const timeAgo = lastSeen ? Math.floor(now - lastSeen) : null;
+    const isStale = timeAgo !== null && timeAgo > 60;
+
+    let displayTime = null;
+    if (lastSeen) {
+        if (timeAgo !== null) {
+            if (timeAgo < 60) {
+                displayTime = `Updated ${timeAgo}s ago`;
+            } else if (timeAgo < 3600) {
+                displayTime = `Updated ${Math.floor(timeAgo / 60)}m ago`;
+            } else {
+                const date = new Date(lastSeen * 1000);
+                displayTime = `Last update: ${date.toLocaleString()}`;
+            }
+        }
+    }
 
     return (
         <div className="bg-ruuvi-card rounded-xl shadow-lg border border-transparent p-5 flex flex-col h-auto hover:shadow-xl transition-shadow relative overflow-hidden">
@@ -55,6 +76,14 @@ export function IntegrationCard({
                         <h3 className="font-bold text-lg text-ruuvi-text leading-tight">{title}</h3>
                         {(subtitle || description) && (
                             <p className="text-xs text-ruuvi-text-muted font-mono mt-0.5">{subtitle || description}</p>
+                        )}
+                        {displayTime && (
+                            <div className="flex items-center gap-1 mt-1">
+                                <span className={`w-1.5 h-1.5 rounded-full ${!isStale ? 'bg-ruuvi-success animate-pulse' : 'bg-ruuvi-text-muted'}`} />
+                                <span className="text-[10px] text-ruuvi-text-muted font-medium uppercase tracking-wide">
+                                    {displayTime}
+                                </span>
+                            </div>
                         )}
                     </div>
                 </div>

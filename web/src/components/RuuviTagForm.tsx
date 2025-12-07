@@ -9,17 +9,20 @@ interface RuuviTagFormProps {
 }
 
 export function RuuviTagForm({ tag, tagName, enabled, onNameChange, onEnabledChange }: RuuviTagFormProps) {
+    const inputClasses = "w-full px-3 py-2 bg-ruuvi-dark border border-ruuvi-text-muted/20 rounded-lg focus:ring-2 focus:ring-ruuvi-success/50 focus:border-ruuvi-success text-sm text-white placeholder-ruuvi-text-muted/30";
+    const labelClasses = "text-sm font-medium text-ruuvi-text-muted";
+
     return (
         <div className="space-y-6">
             {/* Enable Toggle */}
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between p-4 bg-ruuvi-dark/30 border border-ruuvi-text-muted/10 rounded-lg">
                 <div>
-                    <div className="font-medium text-gray-900">Enable Tag</div>
-                    <div className="text-sm text-gray-500">Forward data from this tag to sinks</div>
+                    <div className="font-bold text-white">Enable Tag</div>
+                    <div className="text-sm text-ruuvi-text-muted">Forward data from this tag to sinks</div>
                 </div>
                 <button
                     onClick={() => onEnabledChange(!enabled)}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${enabled ? 'bg-blue-600' : 'bg-gray-300'
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${enabled ? 'bg-ruuvi-success' : 'bg-ruuvi-dark border border-ruuvi-text-muted/30'
                         }`}
                 >
                     <span
@@ -31,87 +34,87 @@ export function RuuviTagForm({ tag, tagName, enabled, onNameChange, onEnabledCha
 
             {/* Name Field */}
             <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-700">Name</label>
+                <label className={labelClasses}>Name</label>
                 <input
                     type="text"
                     value={tagName}
                     onChange={(e) => onNameChange(e.target.value)}
                     placeholder="e.g., Living Room, Sauna, Outdoor"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    className={inputClasses}
                 />
-                <p className="text-xs text-gray-500">Custom name for this tag (appears in MQTT payload)</p>
+                <p className="text-xs text-ruuvi-text-muted/70">Custom name for this tag (appears in MQTT payload)</p>
             </div>
 
             {/* Tag Information */}
-            <div className="border-t pt-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-3">Tag Information</h4>
+            <div className="border-t border-ruuvi-dark/50 pt-4">
+                <h4 className="text-sm font-bold text-white mb-3">Tag Information</h4>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                     <div className="space-y-1">
-                        <div className="text-gray-500">MAC Address</div>
-                        <div className="font-mono font-medium text-gray-900">{tag.mac}</div>
+                        <div className="text-ruuvi-text-muted">MAC Address</div>
+                        <div className="font-mono font-medium text-white">{tag.mac}</div>
                     </div>
                     <div className="space-y-1">
-                        <div className="text-gray-500">Data Format</div>
-                        <div className="font-medium text-gray-900">v{tag.data_format}</div>
+                        <div className="text-ruuvi-text-muted">Data Format</div>
+                        <div className="font-medium text-white">v{tag.data_format}</div>
                     </div>
                 </div>
             </div>
 
             {/* Current Readings */}
-            <div className="border-t pt-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-3">Current Readings</h4>
+            <div className="border-t border-ruuvi-dark/50 pt-4">
+                <h4 className="text-sm font-bold text-white mb-3">Current Readings</h4>
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="p-3 bg-blue-50 rounded-lg">
-                        <div className="text-gray-500 text-xs uppercase tracking-wide">Temperature</div>
-                        <div className="text-xl font-semibold text-gray-900">
-                            {tag.temperature?.toFixed(2) ?? '--'} °C
+                    <div className="p-3 bg-ruuvi-dark/30 rounded-lg border border-ruuvi-text-muted/10">
+                        <div className="text-ruuvi-text-muted text-xs uppercase tracking-wide">Temperature</div>
+                        <div className="text-xl font-bold text-white">
+                            {tag.temperature?.toFixed(2) ?? '--'} <span className="text-sm font-normal text-ruuvi-text-muted">°C</span>
                         </div>
                     </div>
-                    <div className="p-3 bg-green-50 rounded-lg">
-                        <div className="text-gray-500 text-xs uppercase tracking-wide">Humidity</div>
-                        <div className="text-xl font-semibold text-gray-900">
-                            {tag.humidity?.toFixed(2) ?? '--'} %
+                    <div className="p-3 bg-ruuvi-dark/30 rounded-lg border border-ruuvi-text-muted/10">
+                        <div className="text-ruuvi-text-muted text-xs uppercase tracking-wide">Humidity</div>
+                        <div className="text-xl font-bold text-white">
+                            {tag.humidity?.toFixed(2) ?? '--'} <span className="text-sm font-normal text-ruuvi-text-muted">%</span>
                         </div>
                     </div>
-                    <div className="p-3 bg-purple-50 rounded-lg">
-                        <div className="text-gray-500 text-xs uppercase tracking-wide">Pressure</div>
-                        <div className="text-xl font-semibold text-gray-900">
-                            {tag.pressure ? (tag.pressure / 100).toFixed(1) : '--'} hPa
+                    <div className="p-3 bg-ruuvi-dark/30 rounded-lg border border-ruuvi-text-muted/10">
+                        <div className="text-ruuvi-text-muted text-xs uppercase tracking-wide">Pressure</div>
+                        <div className="text-xl font-bold text-white">
+                            {tag.pressure ? (tag.pressure / 100).toFixed(1) : '--'} <span className="text-sm font-normal text-ruuvi-text-muted">hPa</span>
                         </div>
                     </div>
-                    <div className="p-3 bg-yellow-50 rounded-lg">
-                        <div className="text-gray-500 text-xs uppercase tracking-wide">Battery</div>
-                        <div className="text-xl font-semibold text-gray-900">
-                            {tag.battery_voltage ? (tag.battery_voltage / 1000).toFixed(2) : '--'} V
+                    <div className="p-3 bg-ruuvi-dark/30 rounded-lg border border-ruuvi-text-muted/10">
+                        <div className="text-ruuvi-text-muted text-xs uppercase tracking-wide">Battery</div>
+                        <div className="text-xl font-bold text-white">
+                            {tag.battery_voltage ? (tag.battery_voltage / 1000).toFixed(2) : '--'} <span className="text-sm font-normal text-ruuvi-text-muted">V</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* Additional Details */}
-            <div className="border-t pt-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-3">Diagnostics</h4>
+            <div className="border-t border-ruuvi-dark/50 pt-4">
+                <h4 className="text-sm font-bold text-white mb-3">Diagnostics</h4>
                 <div className="grid grid-cols-3 gap-4 text-sm">
                     <div className="space-y-1">
-                        <div className="text-gray-500">Signal (RSSI)</div>
-                        <div className="font-medium text-gray-900">{tag.rssi} dBm</div>
+                        <div className="text-ruuvi-text-muted">Signal (RSSI)</div>
+                        <div className="font-medium text-white">{tag.rssi} dBm</div>
                     </div>
                     <div className="space-y-1">
-                        <div className="text-gray-500">TX Power</div>
-                        <div className="font-medium text-gray-900">{tag.tx_power ?? '--'} dBm</div>
+                        <div className="text-ruuvi-text-muted">TX Power</div>
+                        <div className="font-medium text-white">{tag.tx_power ?? '--'} dBm</div>
                     </div>
                     <div className="space-y-1">
-                        <div className="text-gray-500">Movement</div>
-                        <div className="font-medium text-gray-900">{tag.movement_counter ?? '--'}</div>
+                        <div className="text-ruuvi-text-muted">Movement</div>
+                        <div className="font-medium text-white">{tag.movement_counter ?? '--'}</div>
                     </div>
                     <div className="space-y-1">
-                        <div className="text-gray-500">Sequence #</div>
-                        <div className="font-medium text-gray-900">{tag.measurement_sequence_number ?? '--'}</div>
+                        <div className="text-ruuvi-text-muted">Sequence #</div>
+                        <div className="font-medium text-white">{tag.measurement_sequence_number ?? '--'}</div>
                     </div>
                     <div className="space-y-1 col-span-2">
-                        <div className="text-gray-500">Last Seen</div>
-                        <div className="font-medium text-gray-900">
-                            {new Date(tag.last_seen).toLocaleString()}
+                        <div className="text-ruuvi-text-muted">Last Seen</div>
+                        <div className="font-medium text-white">
+                            {new Date(tag.last_seen * 1000).toLocaleString()}
                         </div>
                     </div>
                 </div>

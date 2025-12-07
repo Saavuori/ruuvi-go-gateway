@@ -25,6 +25,7 @@ export default function Home() {
   // Restart Confirmation State
   const [showRestartPrompt, setShowRestartPrompt] = useState(false);
   const [isRestarting, setIsRestarting] = useState(false);
+  const [configChanged, setConfigChanged] = useState(false);
 
   // Tag Modal State
   const [selectedTag, setSelectedTag] = useState<Tag | null>(null);
@@ -32,51 +33,41 @@ export default function Home() {
   const [tagModalEnabled, setTagModalEnabled] = useState(false);
 
   useEffect(() => {
-    async function load() {
+    const fetchData = async () => {
       try {
-        const [cfg, t] = await Promise.all([fetchConfig(), fetchTags()]);
-        setConfig(cfg);
-        setTags(t);
-      } catch (e) {
-        console.error(e);
+        const [configData, tagsData] = await Promise.all([
+          fetchConfig(),
+          fetchTags()
+        ]);
+        setConfig(configData);
+        setTags(tagsData);
+      } catch (error) {
+        console.error('Error fetching initial data:', error);
       } finally {
         setLoading(false);
       }
-    }
-    load();
+    };
+
+    fetchData();
 
     const interval = setInterval(async () => {
       try {
-        const t = await fetchTags();
-        setTags(t);
-      } catch (e) {
-        console.error("Failed to refresh tags", e);
+        const tagsData = await fetchTags();
+        setTags(tagsData);
+      } catch (error) {
+        console.error('Error polling tags:', error);
       }
-    }, 2000);
+    }, 2500);
 
     return () => clearInterval(interval);
   }, []);
-
-  const handleConfigure = (sinkId: string) => {
-    if (!config) return;
-    setActiveSinkId(sinkId);
-
-    if (sinkId === 'mqtt_publisher') {
-      setFormData(config.mqtt_publisher || { enabled: true });
-    } else if (sinkId === 'influxdb_publisher') {
-      setFormData(config.influxdb_publisher || { enabled: true });
-    } else if (sinkId === 'influxdb3_publisher') {
-      setFormData(config.influxdb3_publisher || { enabled: true });
-    }
-
-    setIsModalOpen(true);
-  };
 
   const handleSave = async () => {
     if (!config || !activeSinkId) return;
     setIsSaving(true);
 
     try {
+      // ... (config construction remains same)
       const newConfig = { ...config };
 
       if (activeSinkId === 'mqtt_publisher') {
@@ -90,7 +81,8 @@ export default function Home() {
       await updateConfig(newConfig);
       setConfig(newConfig);
       setIsModalOpen(false);
-      setShowRestartPrompt(true); // Show restart confirmation
+      setConfigChanged(true); // Mark config as changed
+      setShowRestartPrompt(false); // Do not auto-show prompt, just show button
     } catch (e) {
       alert('Failed to save config: ' + e);
     } finally {
@@ -99,69 +91,37 @@ export default function Home() {
   };
 
   const handleRestart = async () => {
+    if (!confirm('Are you sure you want to restart the gateway?')) return;
+
     setIsRestarting(true);
     try {
       await restartGateway();
-      // Gateway will exit, page will become unresponsive
+      // Wait a bit to allow restart to trigger
       setTimeout(() => {
         window.location.reload();
-      }, 2000);
+      }, 5000);
     } catch (e) {
       alert('Failed to restart: ' + e);
       setIsRestarting(false);
     }
   };
 
-  const handleAddTag = async (mac: string) => {
-    try {
-      const result = await enableTag(mac, true);
-      if (result.success && config) {
-        setConfig({ ...config, enabled_tags: result.enabled_tags });
-      }
-    } catch (e) {
-      alert('Failed to add tag: ' + e);
-    }
-  };
-
-  const handleRemoveTag = async (mac: string) => {
-    try {
-      const result = await enableTag(mac, false);
-      if (result.success && config) {
-        setConfig({ ...config, enabled_tags: result.enabled_tags });
-      }
-    } catch (e) {
-      alert('Failed to remove tag: ' + e);
-    }
-  };
-
-  const isTagEnabled = (mac: string) => {
-    return config?.enabled_tags?.some(m => m.toUpperCase() === mac.toUpperCase()) ?? false;
-  };
-
-  const getTagName = (mac: string) => {
-    return config?.tag_names?.[mac.toUpperCase()] || config?.tag_names?.[mac] || null;
-  };
-
-  const openTagModal = (tag: Tag) => {
-    setSelectedTag(tag);
-    setTagModalName(getTagName(tag.mac) || '');
-    setTagModalEnabled(isTagEnabled(tag.mac));
-  };
-
   const saveTagSettings = async () => {
-    if (!selectedTag || !config) return;
     setIsSaving(true);
     try {
-      // Update name
+      if (!selectedTag || !config) return;
+      let changed = false;
       const nameResult = await setTagName(selectedTag.mac, tagModalName);
       if (nameResult.success) {
         setConfig({ ...config, tag_names: nameResult.tag_names });
+        changed = true;
       }
-      // Update enabled status
       const enableResult = await enableTag(selectedTag.mac, tagModalEnabled);
       if (enableResult.success) {
         setConfig(prev => prev ? { ...prev, enabled_tags: enableResult.enabled_tags } : null);
+        changed = true;
       }
+      if (changed) setConfigChanged(true);
       setSelectedTag(null);
     } catch (e) {
       alert('Failed to save: ' + e);
@@ -170,64 +130,119 @@ export default function Home() {
     }
   };
 
-  if (loading || !config) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  // Helper functions
+  const getTagName = (mac: string) => {
+    return config?.tag_names?.[mac];
+  };
 
-  // Helper to map config sections to cards
+  const isTagEnabled = (mac: string) => {
+    // If enabled_tags is empty/undefined, defaults might differ, but usually it implies none or all? 
+    // Based on handleTagEnable (api.go), it adds to the list. 
+    // If the list is nil in config, it might mean "allow interaction" or "none enabled".
+    // Let's assume explicit allowlist if the array exists. 
+    // But typical behavior (allowlisting) means if the list is present, only those are enabled.
+    // If config.enabled_tags is undefined, maybe all are enabled? 
+    // Let's stick effectively to: is it in the list?
+    return config?.enabled_tags?.some(m => m.toLowerCase() === mac.toLowerCase()) ?? false;
+  };
+
+  const openTagModal = (tag: Tag) => {
+    setSelectedTag(tag);
+    setTagModalName(getTagName(tag.mac) || '');
+    setTagModalEnabled(isTagEnabled(tag.mac));
+  };
+
+  const handleConfigure = (id: string) => {
+    setActiveSinkId(id);
+    if (!config) return;
+
+    if (id === 'mqtt_publisher') {
+      setFormData(config.mqtt_publisher || {
+        enabled: false,
+        broker_url: 'tcp://localhost:1883',
+        client_id: 'ruuvi-gateway',
+        topic_prefix: 'ruuvi',
+        send_decoded: true,
+        minimum_interval: '1s'
+      });
+    } else if (id === 'influxdb_publisher') {
+      setFormData(config.influxdb_publisher || {
+        enabled: false,
+        url: 'http://localhost:8086',
+        auth_token: '',
+        org: 'my-org',
+        bucket: 'ruuvi',
+        measurement: 'ruuvi_measurements',
+        minimum_interval: '1s'
+      });
+    } else if (id === 'influxdb3_publisher') {
+      setFormData(config.influxdb3_publisher || {
+        enabled: false,
+        url: 'https://us-east-1-1.aws.cloud2.influxdata.com',
+        auth_token: '',
+        database: 'ruuvi',
+        measurement: 'ruuvi_measurements',
+        minimum_interval: '1s'
+      });
+    } else if (id === 'prometheus') {
+      // Prometheus usually just has enabled/disabled in this simple config, 
+      // but let's check the schema. It has port and prefix.
+      // For now, we don't have a form for it in the modal (based on lines 216-220), 
+      // it just shows a message. But we set ID so the modal opens.
+    }
+    setIsModalOpen(true);
+  };
+
   const sinks = [
     {
       id: 'mqtt_publisher',
       title: 'MQTT Publisher',
-      desc: 'Publish JSON to MQTT Broker',
-      icon: Radio,
-      enabled: config.mqtt_publisher?.enabled,
+      desc: 'Publish tag data to MQTT broker',
+      icon: Cloud,
+      enabled: config?.mqtt_publisher?.enabled ?? false
     },
     {
       id: 'influxdb_publisher',
       title: 'InfluxDB v2',
-      desc: 'Send data to InfluxDB Time Series',
+      desc: 'Write data to InfluxDB v2',
       icon: Database,
-      enabled: config.influxdb_publisher?.enabled,
+      enabled: config?.influxdb_publisher?.enabled ?? false
     },
     {
       id: 'influxdb3_publisher',
       title: 'InfluxDB v3',
-      desc: 'Send data to InfluxDB Cloud',
-      icon: Cloud,
-      enabled: config.influxdb3_publisher?.enabled,
+      desc: 'Write data to InfluxDB Cloud / v3',
+      icon: Database,
+      enabled: config?.influxdb3_publisher?.enabled ?? false
     },
     {
       id: 'prometheus',
       title: 'Prometheus',
       desc: 'Expose metrics for scraping',
       icon: BarChart3,
-      enabled: config.prometheus?.enabled,
-    },
+      enabled: config?.prometheus?.enabled ?? false
+    }
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-ruuvi-dark text-ruuvi-text">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-ruuvi-card border-b border-ruuvi-dark/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Settings className="w-6 h-6 text-blue-600" />
-            <h1 className="text-xl font-bold text-gray-900">Ruuvi Gateway Management</h1>
+            <Settings className="w-6 h-6 text-ruuvi-success" />
+            <h1 className="text-xl font-bold text-white">Ruuvi Gateway Management</h1>
           </div>
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => setShowRestartPrompt(true)}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Restart Gateway
-            </button>
-            <span className="text-sm text-gray-500">v{process.env.NEXT_PUBLIC_VERSION || 'DEV'}</span>
+            {configChanged && (
+              <button
+                onClick={() => setShowRestartPrompt(true)}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm font-bold text-ruuvi-dark bg-ruuvi-accent hover:bg-ruuvi-accent/90 rounded-lg transition-all animate-pulse shadow-glow"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Restart to Apply Changes
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -236,7 +251,7 @@ export default function Home() {
         {/* Discovered Section */}
         <section>
           <div className="mb-6">
-            <h2 className="text-2xl font-semibold text-ruuvi-text">Discovered</h2>
+            <h2 className="text-2xl font-semibold text-white">Discovered</h2>
             <p className="text-ruuvi-text-muted mt-1">Nearby RuuviTags detected by the scanner</p>
           </div>
 
@@ -263,14 +278,16 @@ export default function Home() {
                     nox: tag.nox,
                     illuminance: tag.illuminance,
                     sound_average: tag.sound_average,
-                    movement_counter: tag.movement_counter
+                    movement_counter: tag.movement_counter,
+                    air_quality_index: tag.air_quality_index
                   }}
                   onConfigure={() => openTagModal(tag)}
                   configureLabel="Configure"
+                  lastSeen={tag.last_seen}
                 />
               ))}
             {tags.length === 0 && (
-              <div className="col-span-full py-12 text-center text-ruuvi-text-muted bg-ruuvi-card rounded-xl border border-dashed border-ruuvi-dark">
+              <div className="col-span-full py-12 text-center text-ruuvi-text-muted bg-ruuvi-card/50 rounded-xl border border-dashed border-ruuvi-text-muted/20">
                 No tags discovered yet.
               </div>
             )}
@@ -280,8 +297,8 @@ export default function Home() {
         {/* Configured Section */}
         <section>
           <div className="mb-6">
-            <h2 className="text-2xl font-semibold text-gray-900">Configured</h2>
-            <p className="text-gray-500 mt-1">Active data sinks and integrations</p>
+            <h2 className="text-2xl font-semibold text-white">Configured</h2>
+            <p className="text-ruuvi-text-muted mt-1">Active data sinks and integrations</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -339,16 +356,16 @@ export default function Home() {
 
       {/* Restart Confirmation Dialog */}
       {showRestartPrompt && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-xl">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Restart Required</h3>
-            <p className="text-gray-600 mb-6">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-ruuvi-card border border-ruuvi-text-muted/10 rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-white mb-2">Restart Required</h3>
+            <p className="text-ruuvi-text-muted mb-6">
               Configuration changes have been saved. The gateway needs to restart for changes to take effect.
             </p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowRestartPrompt(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                className="px-4 py-2 text-sm font-medium text-ruuvi-text-muted hover:text-white hover:bg-ruuvi-dark/50 rounded-lg transition-colors border border-transparent hover:border-ruuvi-text-muted/30"
                 disabled={isRestarting}
               >
                 Later
@@ -356,7 +373,7 @@ export default function Home() {
               <button
                 onClick={handleRestart}
                 disabled={isRestarting}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50"
+                className="px-4 py-2 text-sm font-bold text-ruuvi-dark bg-ruuvi-success hover:bg-ruuvi-success/90 rounded-lg transition-colors disabled:opacity-50"
               >
                 {isRestarting ? 'Restarting...' : 'Restart Now'}
               </button>

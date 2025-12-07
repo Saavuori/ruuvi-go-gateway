@@ -43,6 +43,7 @@ export interface MQTTPublisherConfig {
     password?: string;
     minimum_interval: string;
     homeassistant_discovery_prefix?: string;
+    retain_messages?: boolean;
 }
 
 export interface InfluxDBPublisherConfig {
@@ -93,5 +94,6 @@ export interface Tag {
     sound_instant?: number;
     sound_average?: number;
     sound_peak?: number;
+    air_quality_index?: number;
     last_seen: number; // Unix timestamp
 }
