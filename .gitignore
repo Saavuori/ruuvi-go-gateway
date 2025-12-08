@@ -3,3 +3,6 @@
 /verification_config.yml
 *~
 *.exe
+
+node_modules/
+dist/
